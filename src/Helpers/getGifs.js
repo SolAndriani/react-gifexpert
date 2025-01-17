@@ -1,28 +1,32 @@
-
-
-
-export const getGifs = async (category) => {
-    const url = `https://api.giphy.com/v1/gifs/search?api_key=TNHdKWddyuBzaXwLYOXPJA46ZSFsLgn7&q=${encodeURIComponent(category)}&limit=20`;
-
+const Hc = async (category) => {
     try {
-        const resp = await fetch(url);
-        const { data } = await resp.json();
+        const m = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=TNHdKWddyuBzaXwLYOXPJA46ZSFsLgn7&q=${encodeURIComponent(category)}&limit=20`);
+        const { data: W } = await m.json();
 
-        console.log("Datos obtenidos:", data);
+        // Imprimir la respuesta completa para verificar la estructura de los datos
+        console.log("Respuesta de la API:", W);
 
-        // Filtrar los objetos que no tengan imágenes válidas
-        const gifs = data
-            .filter(img => img.images?.downsized_medium?.url) // Validación para evitar objetos inválidos
-            .map(img => ({
-                id: img.id,
-                title: img.title || 'Sin título', // Fallback para título
-                url: img.images.downsized_medium.url,
-            }));
+        // Filtrar y mapear los resultados con validación más completa
+        const gifs = W.map(I => {
+            // Comprobar que 'I.images' y 'I.images.downsized_medium' existen antes de acceder a la URL
+            if (I && I.images && I.images.downsized_medium && I.images.downsized_medium.url) {
+                return {
+                    id: I.id,
+                    title: I.title || 'Sin título', // Fallback si no hay título
+                    url: I.images.downsized_medium.url
+                };
+            } else {
+                console.warn("Imagen o URL no encontrada para el item:", I); // Advertencia si faltan datos
+                return null; // Si no hay imagen válida, retornar null
+            }
+        }).filter(gif => gif !== null); // Filtrar los valores nulos
+
+        // Imprimir los resultados en consola
+        console.log("GIFs obtenidos:", gifs);
 
         return gifs;
     } catch (error) {
         console.error("Error fetching GIFs:", error);
-        return []; // Retornar un array vacío en caso de error
+        return []; // En caso de error, retornar un array vacío
     }
 };
-
