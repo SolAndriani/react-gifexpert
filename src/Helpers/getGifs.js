@@ -1,25 +1,29 @@
 export const getGifs = async (category) => {
-  // Cambié el protocolo a https para evitar posibles problemas de seguridad
-  const url = `https://api.giphy.com/v1/gifs/search?api_key=TNHdKWddyuBzaXwLYOXPJA46ZSFsLgn7&q=${encodeURIComponent(category)}&limit=20`;
-
   try {
-      const resp = await fetch(url);
-      const { data } = await resp.json();
+    const url = `https://api.giphy.com/v1/gifs/search?api_key=kaJ1JwD4CuQgYun7YpTQpTr5p1qs1sQn&q=${category}&limit=10`;
+    const resp = await fetch(url);
 
-      console.log("Datos obtenidos:", data);
+    if (!resp.ok) {  // Verifica si la respuesta fue exitosa
+      throw new Error('Failed to fetch data');
+    }
 
-      // Filtrar los objetos que no tengan imágenes válidas
-      const gifs = data
-          .filter(img => img.images && img.images.downsized_medium && img.images.downsized_medium.url) // Validación más segura
-          .map(img => ({
-              id: img.id,
-              title: img.title || 'Sin título', // Fallback para título
-              url: img.images.downsized_medium.url,
-          }));
+    const { data } = await resp.json();
 
-      return gifs;
+    // Si no hay datos, devuelve un array vacío
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Mapea los datos de la API a un formato más limpio
+    const gifs = data.map(img => ({
+      id: img.id,
+      title: img.title,
+      url: img.images.downsized_medium.url
+    }));
+
+    return gifs;
   } catch (error) {
-      console.error("Error fetching GIFs:", error);
-      return []; // Retornar un array vacío en caso de error
+    console.error('Error fetching GIFs:', error);
+    return [];  // En caso de error, devuelve un array vacío
   }
 };
